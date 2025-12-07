@@ -147,15 +147,15 @@ function CheckoutForm({ flight, tripId, paymentIntentId, onSuccess, onBack }: Ch
         // Create booking record
         const { data: booking, error: bookingError } = await supabase
           .from('bookings')
-          .insert([{
+          .insert({
             trip_id: tripId,
             provider_name: flight.outbound.carrier,
             amount_cents: Math.round(flight.price.total * 100),
             currency: flight.price.currency.toLowerCase(),
-            flight_data_json: flight as unknown as Record<string, unknown>,
+            flight_data_json: JSON.parse(JSON.stringify(flight)),
             payment_status: 'completed',
             stripe_payment_intent_id: paymentIntentId,
-          }])
+          })
           .select()
           .single();
 

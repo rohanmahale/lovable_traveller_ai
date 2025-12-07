@@ -43,7 +43,7 @@ export default function Trips() {
       if (error) {
         console.error('Error fetching trips:', error);
       } else {
-        setTrips((data as Trip[]) || []);
+        setTrips((data as unknown as Trip[]) || []);
       }
       setIsLoading(false);
     };

@@ -37,7 +37,7 @@ serve(async (req) => {
       body: new URLSearchParams({
         amount: String(amountInCents),
         currency: currency || 'usd',
-        automatic_payment_methods: JSON.stringify({ enabled: true }),
+        'automatic_payment_methods[enabled]': 'true',
         ...(metadata && { 'metadata[trip_id]': metadata.tripId || '' }),
         ...(metadata && { 'metadata[booking_id]': metadata.bookingId || '' }),
         ...(metadata && { 'metadata[flight_id]': metadata.flightId || '' }),

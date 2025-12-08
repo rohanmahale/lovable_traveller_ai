@@ -11,34 +11,17 @@ import { FlightSearch } from '@/components/FlightSearch';
 import { PaymentForm } from '@/components/PaymentForm';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { TripFormData, Itinerary, Flight, Trip } from '@/types/travel';
 
 export default function Index() {
-  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
   const [activeTab, setActiveTab] = useState('plan');
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity }}>
-          <Plane className="w-8 h-8 text-primary" />
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
 
   const handleGenerateItinerary = async (formData: TripFormData) => {
     if (!formData.startDate || !formData.endDate) return;
@@ -48,10 +31,13 @@ export default function Index() {
 
     try {
       // Create trip record first
+      // Use a temporary guest user ID for demo purposes
+      const guestUserId = '00000000-0000-0000-0000-000000000000';
+      
       const { data: trip, error: tripError } = await supabase
         .from('trips')
         .insert([{
-          user_id: user.id,
+          user_id: guestUserId,
           destination: formData.destination,
           start_date: format(formData.startDate, 'yyyy-MM-dd'),
           end_date: format(formData.endDate, 'yyyy-MM-dd'),

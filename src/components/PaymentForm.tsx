@@ -10,10 +10,9 @@ import { toast } from '@/hooks/use-toast';
 import { Flight } from '@/types/travel';
 
 // Get Stripe publishable key from env
-const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-console.log('Stripe key present:', !!STRIPE_KEY);
-
-const stripePromise = STRIPE_KEY ? loadStripe(STRIPE_KEY) : null;
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY 
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 interface PaymentFormProps {
   flight: Flight;

@@ -120,11 +120,19 @@ function CheckoutForm({ flight, tripId, paymentIntentId, onSuccess, onBack }: Ch
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [isElementReady, setIsElementReady] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !isElementReady) {
+      toast({
+        title: "Payment Not Ready",
+        description: "Please wait for the payment form to load completely.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsProcessing(true);
 
@@ -254,6 +262,15 @@ function CheckoutForm({ flight, tripId, paymentIntentId, onSuccess, onBack }: Ch
               options={{
                 layout: 'tabs',
               }}
+              onReady={() => setIsElementReady(true)}
+              onLoadError={(error) => {
+                console.error('Payment Element load error:', error);
+                toast({
+                  title: "Payment Form Error",
+                  description: "Failed to load payment form. Please check your connection and try again.",
+                  variant: "destructive",
+                });
+              }}
             />
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -266,7 +283,7 @@ function CheckoutForm({ flight, tripId, paymentIntentId, onSuccess, onBack }: Ch
               variant="hero"
               size="xl"
               className="w-full"
-              disabled={!stripe || isProcessing}
+              disabled={!stripe || !isElementReady || isProcessing}
             >
               {isProcessing ? (
                 <span className="flex items-center gap-2">

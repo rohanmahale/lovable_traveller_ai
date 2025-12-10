@@ -91,7 +91,7 @@ Make the itinerary realistic, with proper timing between activities. Include a m
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.7,
-        max_tokens: 4000,
+        max_tokens: 8000, // Increased for longer trips
         response_format: { type: "json_object" }
       }),
     });
@@ -104,14 +104,38 @@ Make the itinerary realistic, with proper timing between activities. Include a m
 
     const data = await response.json();
     const itineraryContent = data.choices[0].message.content;
+    const finishReason = data.choices[0].finish_reason;
 
-    console.log('Itinerary generated successfully');
+    console.log('Itinerary generated, finish_reason:', finishReason);
+    console.log('Content length:', itineraryContent?.length || 0);
+
+    // Check if response was truncated
+    if (finishReason === 'length') {
+      console.error('Response was truncated due to token limit');
+      throw new Error('Itinerary too long - try a shorter trip duration');
+    }
 
     let itinerary;
     try {
-      itinerary = JSON.parse(itineraryContent);
+      // Clean the content - remove any markdown code blocks if present
+      let cleanedContent = itineraryContent.trim();
+      
+      // Remove markdown code blocks if wrapped
+      if (cleanedContent.startsWith('```json')) {
+        cleanedContent = cleanedContent.slice(7);
+      } else if (cleanedContent.startsWith('```')) {
+        cleanedContent = cleanedContent.slice(3);
+      }
+      if (cleanedContent.endsWith('```')) {
+        cleanedContent = cleanedContent.slice(0, -3);
+      }
+      cleanedContent = cleanedContent.trim();
+
+      itinerary = JSON.parse(cleanedContent);
     } catch (e) {
       console.error('Failed to parse itinerary JSON:', e);
+      console.error('Raw content (first 500 chars):', itineraryContent?.substring(0, 500));
+      console.error('Raw content (last 500 chars):', itineraryContent?.substring(itineraryContent.length - 500));
       throw new Error('Failed to parse generated itinerary');
     }
 

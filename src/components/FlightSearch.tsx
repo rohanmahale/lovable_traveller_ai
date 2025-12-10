@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, Clock, ArrowRight, Search, Loader2 } from 'lucide-react';
@@ -10,6 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Flight } from '@/types/travel';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import {
+  FlightFiltersPanel,
+  FlightFilters,
+  SortOption,
+  applyFiltersAndSort,
+  getDefaultFilters,
+} from './FlightFilters';
 
 interface FlightSearchProps {
   destination: string;
@@ -36,6 +43,8 @@ export function FlightSearch({ destination, departureDate, returnDate, onSelectF
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [carriers, setCarriers] = useState<Record<string, string>>({});
+  const [sortBy, setSortBy] = useState<SortOption>('price-asc');
+  const [filters, setFilters] = useState<FlightFilters>(getDefaultFilters([]));
 
   const searchFlights = async () => {
     if (!origin.trim()) {
@@ -63,10 +72,14 @@ export function FlightSearch({ destination, departureDate, returnDate, onSelectF
 
       if (error) throw error;
 
-      setFlights(data.flights || []);
+      const fetchedFlights = data.flights || [];
+      setFlights(fetchedFlights);
       setCarriers(data.carriers || {});
+      
+      // Reset filters to match new flight data
+      setFilters(getDefaultFilters(fetchedFlights));
 
-      if (data.flights?.length === 0) {
+      if (fetchedFlights.length === 0) {
         toast({
           title: "No flights found",
           description: "Try different dates or airports",
@@ -100,6 +113,16 @@ export function FlightSearch({ destination, departureDate, returnDate, onSelectF
       hour12: false,
     });
   };
+
+  const handleResetFilters = () => {
+    setFilters(getDefaultFilters(flights));
+    setSortBy('price-asc');
+  };
+
+  // Apply filters and sorting
+  const displayedFlights = useMemo(() => {
+    return applyFiltersAndSort(flights, filters, sortBy);
+  }, [flights, filters, sortBy]);
 
   return (
     <div className="space-y-6">
@@ -151,6 +174,19 @@ export function FlightSearch({ destination, departureDate, returnDate, onSelectF
         </CardContent>
       </Card>
 
+      {/* Filters Panel - only show after search with results */}
+      {hasSearched && flights.length > 0 && (
+        <FlightFiltersPanel
+          flights={flights}
+          carriers={carriers}
+          filters={filters}
+          sortBy={sortBy}
+          onFiltersChange={setFilters}
+          onSortChange={setSortBy}
+          onReset={handleResetFilters}
+        />
+      )}
+
       {/* Results */}
       <AnimatePresence mode="wait">
         {isLoading ? (
@@ -171,14 +207,21 @@ export function FlightSearch({ destination, departureDate, returnDate, onSelectF
             </div>
             <p className="mt-4 text-muted-foreground">Searching for the best flights...</p>
           </motion.div>
-        ) : flights.length > 0 ? (
+        ) : displayedFlights.length > 0 ? (
           <motion.div
             key="results"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="space-y-4"
           >
-            {flights.map((flight, index) => (
+            {/* Results count */}
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>
+                Showing {displayedFlights.length} of {flights.length} flight{flights.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            {displayedFlights.map((flight, index) => (
               <FlightCard
                 key={flight.id}
                 flight={flight}
@@ -190,6 +233,20 @@ export function FlightSearch({ destination, departureDate, returnDate, onSelectF
                 index={index}
               />
             ))}
+          </motion.div>
+        ) : hasSearched && flights.length > 0 ? (
+          <motion.div
+            key="no-filter-results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12"
+          >
+            <Plane className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <p className="text-lg font-medium">No flights match your filters</p>
+            <p className="text-muted-foreground mb-4">Try adjusting your filter criteria</p>
+            <Button variant="outline" onClick={handleResetFilters}>
+              Reset Filters
+            </Button>
           </motion.div>
         ) : hasSearched ? (
           <motion.div

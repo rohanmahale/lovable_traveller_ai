@@ -84,8 +84,29 @@ Return a JSON object with this exact structure:
 Make the itinerary realistic, with proper timing between activities. Include a mix of popular attractions and local favorites.`;
 
     console.log('[TIMING] Prompts prepared:', Date.now() - startTime, 'ms');
-    console.log('[TIMING] Starting OpenAI API call...');
+    console.log('[TIMING] Starting OpenAI API call at:', new Date().toISOString());
     const openaiStartTime = Date.now();
+
+    const requestBody = {
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 8000,
+      response_format: { type: "json_object" }
+    };
+
+    console.log('[REQUEST] OpenAI request body:', JSON.stringify({
+      model: requestBody.model,
+      temperature: requestBody.temperature,
+      max_tokens: requestBody.max_tokens,
+      response_format: requestBody.response_format,
+      messages_count: requestBody.messages.length,
+      system_prompt_length: systemPrompt.length,
+      user_prompt_length: userPrompt.length
+    }));
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -93,20 +114,14 @@ Make the itinerary realistic, with proper timing between activities. Include a m
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 8000,
-        response_format: { type: "json_object" }
-      }),
+      body: JSON.stringify(requestBody),
     });
 
-    console.log('[TIMING] OpenAI API responded:', Date.now() - openaiStartTime, 'ms (API call only)');
-    console.log('[TIMING] Total so far:', Date.now() - startTime, 'ms');
+    const openaiEndTime = Date.now();
+    console.log('[TIMING] OpenAI API responded at:', new Date().toISOString());
+    console.log('[TIMING] OpenAI API duration:', openaiEndTime - openaiStartTime, 'ms');
+    console.log('[RESPONSE] OpenAI response status:', response.status);
+    console.log('[RESPONSE] OpenAI response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
 
     if (!response.ok) {
       const errorText = await response.text();

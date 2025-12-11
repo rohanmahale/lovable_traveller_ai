@@ -29,10 +29,15 @@ export default function Index() {
     setIsGenerating(true);
     setItinerary(null);
 
+    const totalStart = performance.now();
+    console.log('[FRONTEND TIMING] Starting itinerary generation...');
+
     try {
       // Create trip record first
-      // Use a temporary guest user ID for demo purposes
       const guestUserId = '00000000-0000-0000-0000-000000000000';
+      
+      const dbInsertStart = performance.now();
+      console.log('[FRONTEND TIMING] Creating trip record...');
       
       const { data: trip, error: tripError } = await supabase
         .from('trips')
@@ -48,9 +53,14 @@ export default function Index() {
         .select()
         .single();
 
+      console.log('[FRONTEND TIMING] Trip record created:', (performance.now() - dbInsertStart).toFixed(0), 'ms');
+
       if (tripError) throw tripError;
 
       // Generate itinerary
+      const edgeFnStart = performance.now();
+      console.log('[FRONTEND TIMING] Calling generate-itinerary edge function...');
+      
       const { data, error } = await supabase.functions.invoke('generate-itinerary', {
         body: {
           destination: formData.destination,
@@ -62,9 +72,14 @@ export default function Index() {
         },
       });
 
+      console.log('[FRONTEND TIMING] Edge function returned:', (performance.now() - edgeFnStart).toFixed(0), 'ms');
+
       if (error) throw error;
 
       // Update trip with itinerary
+      const dbUpdateStart = performance.now();
+      console.log('[FRONTEND TIMING] Updating trip with itinerary...');
+      
       await supabase
         .from('trips')
         .update({ 
@@ -72,6 +87,9 @@ export default function Index() {
           status: 'planned',
         })
         .eq('id', trip.id);
+
+      console.log('[FRONTEND TIMING] Trip updated:', (performance.now() - dbUpdateStart).toFixed(0), 'ms');
+      console.log('[FRONTEND TIMING] Total time:', (performance.now() - totalStart).toFixed(0), 'ms');
 
       setCurrentTrip({ ...trip, itinerary_json: data.itinerary } as Trip);
       setItinerary(data.itinerary);
@@ -82,7 +100,7 @@ export default function Index() {
         description: `Your ${formData.destination} adventure awaits.`,
       });
     } catch (error) {
-      console.error('Error generating itinerary:', error);
+      console.error('[FRONTEND TIMING] Error after', (performance.now() - totalStart).toFixed(0), 'ms:', error);
       toast({
         title: "Generation Failed",
         description: "Unable to create itinerary. Please try again.",

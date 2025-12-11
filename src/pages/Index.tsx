@@ -61,15 +61,20 @@ export default function Index() {
       const edgeFnStart = performance.now();
       console.log('[FRONTEND TIMING] Calling generate-itinerary edge function...');
       
+      const requestBody = {
+        destination: formData.destination,
+        startDate: format(formData.startDate, 'yyyy-MM-dd'),
+        endDate: format(formData.endDate, 'yyyy-MM-dd'),
+        budget: parseInt(formData.budget) || 2000,
+        travelers: parseInt(formData.travelers) || 1,
+        interests: formData.interests,
+      };
+      
+      console.log('[FRONTEND REQUEST] Sending to edge function:', JSON.stringify(requestBody, null, 2));
+      console.log('[FRONTEND REQUEST] Timestamp:', new Date().toISOString());
+      
       const { data, error } = await supabase.functions.invoke('generate-itinerary', {
-        body: {
-          destination: formData.destination,
-          startDate: format(formData.startDate, 'yyyy-MM-dd'),
-          endDate: format(formData.endDate, 'yyyy-MM-dd'),
-          budget: parseInt(formData.budget) || 2000,
-          travelers: parseInt(formData.travelers) || 1,
-          interests: formData.interests,
-        },
+        body: requestBody,
       });
 
       console.log('[FRONTEND TIMING] Edge function returned:', (performance.now() - edgeFnStart).toFixed(0), 'ms');

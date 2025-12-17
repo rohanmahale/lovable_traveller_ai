@@ -32,13 +32,15 @@ serve(async (req) => {
 Your itineraries are practical, well-researched, and include local hidden gems.
 Always respond with valid JSON matching the exact structure requested.`;
 
-    const userPrompt = `Create a detailed ${tripDays}-day travel itinerary for ${destination}.
+    const userPrompt = `Create a concise ${tripDays}-day travel itinerary for ${destination}. IMPORTANT: Keep the total response under 500 words.
 
 Trip Details:
 - Dates: ${startDate} to ${endDate}
 - Budget: $${budget} total
 - Travelers: ${travelers} people
 - Interests: ${interests || 'general sightseeing, local cuisine, culture'}
+
+Be brief and concise. Limit to 2-3 activities per day and 1-2 meal recommendations per day. Keep descriptions short (1 sentence max).
 
 Return a JSON object with this exact structure:
 {
@@ -94,7 +96,7 @@ Make the itinerary realistic, with proper timing between activities. Include a m
         { role: 'user', content: userPrompt }
       ],
       temperature: 0.7,
-      max_tokens: 8000,
+      max_tokens: 2000,
       response_format: { type: "json_object" }
     };
 

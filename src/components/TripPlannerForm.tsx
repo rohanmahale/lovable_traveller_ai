@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon, MapPin, Users, Wallet, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,29 @@ import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { TripFormData } from '@/types/travel';
+
+const POPULAR_DESTINATIONS = [
+  "Paris, France",
+  "Tokyo, Japan",
+  "New York, USA",
+  "London, UK",
+  "Rome, Italy",
+  "Barcelona, Spain",
+  "Dubai, UAE",
+  "Bangkok, Thailand",
+  "Sydney, Australia",
+  "Amsterdam, Netherlands",
+  "Bali, Indonesia",
+  "Singapore",
+  "Istanbul, Turkey",
+  "Lisbon, Portugal",
+  "Prague, Czech Republic",
+  "Vienna, Austria",
+  "Seoul, South Korea",
+  "Cape Town, South Africa",
+  "Rio de Janeiro, Brazil",
+  "Santorini, Greece",
+];
 
 interface TripPlannerFormProps {
   onSubmit: (data: TripFormData) => void;
@@ -25,10 +48,23 @@ export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
     travelers: '2',
     interests: '',
   });
+  const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
+
+  const filteredDestinations = useMemo(() => {
+    if (!formData.destination) return POPULAR_DESTINATIONS.slice(0, 6);
+    return POPULAR_DESTINATIONS.filter(dest =>
+      dest.toLowerCase().includes(formData.destination.toLowerCase())
+    ).slice(0, 6);
+  }, [formData.destination]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
+  };
+
+  const handleDestinationSelect = (destination: string) => {
+    setFormData({ ...formData, destination });
+    setShowDestinationDropdown(false);
   };
 
   return (
@@ -40,7 +76,7 @@ export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
       className="space-y-6"
     >
       {/* Destination */}
-      <div className="space-y-2">
+      <div className="space-y-2 relative">
         <Label htmlFor="destination" className="text-sm font-medium flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
           Where do you want to go?
@@ -50,9 +86,34 @@ export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
           placeholder="Paris, France"
           value={formData.destination}
           onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
+          onFocus={() => setShowDestinationDropdown(true)}
+          onBlur={() => setTimeout(() => setShowDestinationDropdown(false), 200)}
           className="h-12 text-base"
+          autoComplete="off"
           required
         />
+        <AnimatePresence>
+          {showDestinationDropdown && filteredDestinations.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden"
+            >
+              {filteredDestinations.map((dest) => (
+                <button
+                  key={dest}
+                  type="button"
+                  onClick={() => handleDestinationSelect(dest)}
+                  className="w-full px-4 py-3 text-left hover:bg-accent transition-colors flex items-center gap-2 text-sm"
+                >
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  {dest}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Dates */}
@@ -81,6 +142,7 @@ export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
                 onSelect={(date) => setFormData({ ...formData, startDate: date })}
                 disabled={(date) => date < new Date()}
                 initialFocus
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
@@ -106,7 +168,9 @@ export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
                 selected={formData.endDate}
                 onSelect={(date) => setFormData({ ...formData, endDate: date })}
                 disabled={(date) => date < (formData.startDate || new Date())}
+                defaultMonth={formData.startDate || new Date()}
                 initialFocus
+                className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>

@@ -3,10 +3,17 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, Clock, ArrowRight, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Flight } from '@/types/travel';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -24,6 +31,37 @@ interface FlightSearchProps {
   returnDate?: string;
   onSelectFlight: (flight: Flight) => void;
 }
+
+// Common origin airports for departure
+const originAirports: { code: string; name: string; city: string }[] = [
+  // US Major Hubs
+  { code: 'JFK', name: 'John F. Kennedy International', city: 'New York' },
+  { code: 'LAX', name: 'Los Angeles International', city: 'Los Angeles' },
+  { code: 'ORD', name: "O'Hare International", city: 'Chicago' },
+  { code: 'SFO', name: 'San Francisco International', city: 'San Francisco' },
+  { code: 'MIA', name: 'Miami International', city: 'Miami' },
+  { code: 'ATL', name: 'Hartsfield-Jackson Atlanta', city: 'Atlanta' },
+  { code: 'DFW', name: 'Dallas/Fort Worth International', city: 'Dallas' },
+  { code: 'SEA', name: 'Seattle-Tacoma International', city: 'Seattle' },
+  { code: 'BOS', name: 'Boston Logan International', city: 'Boston' },
+  { code: 'DEN', name: 'Denver International', city: 'Denver' },
+  { code: 'EWR', name: 'Newark Liberty International', city: 'Newark' },
+  { code: 'LGA', name: 'LaGuardia', city: 'New York' },
+  { code: 'IAD', name: 'Washington Dulles International', city: 'Washington DC' },
+  // European Hubs
+  { code: 'LHR', name: 'Heathrow', city: 'London' },
+  { code: 'CDG', name: 'Charles de Gaulle', city: 'Paris' },
+  { code: 'FRA', name: 'Frankfurt Airport', city: 'Frankfurt' },
+  { code: 'AMS', name: 'Schiphol', city: 'Amsterdam' },
+  // Asian Hubs
+  { code: 'NRT', name: 'Narita International', city: 'Tokyo' },
+  { code: 'HND', name: 'Haneda', city: 'Tokyo' },
+  { code: 'SIN', name: 'Changi', city: 'Singapore' },
+  { code: 'HKG', name: 'Hong Kong International', city: 'Hong Kong' },
+  { code: 'DXB', name: 'Dubai International', city: 'Dubai' },
+  // Australian
+  { code: 'SYD', name: 'Sydney Kingsford Smith', city: 'Sydney' },
+];
 
 // Airline logos mapping
 const airlineLogos: Record<string, string> = {
@@ -133,16 +171,21 @@ export function FlightSearch({ destination, departureDate, returnDate, onSelectF
             <div className="flex-1 space-y-2">
               <Label htmlFor="origin" className="flex items-center gap-2">
                 <Plane className="w-4 h-4 text-primary" />
-                From (Airport Code)
+                From
               </Label>
-              <Input
-                id="origin"
-                placeholder="JFK, LAX, SFO..."
-                value={origin}
-                onChange={(e) => setOrigin(e.target.value.toUpperCase())}
-                className="h-12 uppercase"
-                maxLength={3}
-              />
+              <Select value={origin} onValueChange={setOrigin}>
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Select departure airport" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50 max-h-[300px]">
+                  {originAirports.map((airport) => (
+                    <SelectItem key={airport.code} value={airport.code}>
+                      <span className="font-medium">{airport.code}</span>
+                      <span className="text-muted-foreground ml-2">- {airport.city}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex-1 space-y-2">
               <Label className="text-muted-foreground">To</Label>

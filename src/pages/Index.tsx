@@ -78,6 +78,8 @@ export default function Index() {
       });
 
       console.log('[FRONTEND TIMING] Edge function returned:', (performance.now() - edgeFnStart).toFixed(0), 'ms');
+      console.log('[AI RESPONSE] Timestamp:', new Date().toISOString());
+      console.log('[AI RESPONSE] Itinerary data:', JSON.stringify(data, null, 2));
 
       if (error) throw error;
 

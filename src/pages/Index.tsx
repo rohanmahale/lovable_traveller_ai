@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import { Plane, Sparkles } from 'lucide-react';
+import { Plane, Sparkles, RefreshCw } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { TripPlannerForm } from '@/components/TripPlannerForm';
 import { LoadingAnimation } from '@/components/LoadingAnimation';
@@ -11,6 +11,17 @@ import { FlightSearch } from '@/components/FlightSearch';
 import { PaymentForm } from '@/components/PaymentForm';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { TripFormData, Itinerary, Flight, Trip } from '@/types/travel';
@@ -21,12 +32,14 @@ export default function Index() {
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
   const [tripOrigin, setTripOrigin] = useState<string>('');
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [lastFormData, setLastFormData] = useState<TripFormData | null>(null);
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
   const [activeTab, setActiveTab] = useState('plan');
 
   const handleGenerateItinerary = async (formData: TripFormData) => {
     if (!formData.startDate || !formData.endDate) return;
     
+    setLastFormData(formData);
     setIsGenerating(true);
     setItinerary(null);
 
@@ -184,10 +197,30 @@ export default function Index() {
                 <div className="space-y-6">
                   <ItineraryDisplay itinerary={itinerary} />
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <Button variant="outline" size="lg" onClick={() => setActiveTab('plan')}>
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      Generate New Itinerary
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="lg" disabled={isGenerating}>
+                          <RefreshCw className={`w-5 h-5 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
+                          Generate New Itinerary
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Generate New Itinerary?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will replace your current itinerary with a new AI-generated one using the same trip details. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => lastFormData && handleGenerateItinerary(lastFormData)}
+                          >
+                            Generate New
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                     <Button variant="hero" size="lg" onClick={() => setActiveTab('flights')}>
                       <Plane className="w-5 h-5 mr-2" />
                       Search Flights

@@ -33,7 +33,7 @@ interface FlightSearchProps {
   onSelectFlight: (flight: Flight) => void;
 }
 
-// Common origin airports for departure
+// Common origin airports for departure - synced with TripPlannerForm
 const originAirports: { code: string; name: string; city: string }[] = [
   // US Major Hubs
   { code: 'JFK', name: 'John F. Kennedy International', city: 'New York' },
@@ -43,25 +43,28 @@ const originAirports: { code: string; name: string; city: string }[] = [
   { code: 'MIA', name: 'Miami International', city: 'Miami' },
   { code: 'ATL', name: 'Hartsfield-Jackson Atlanta', city: 'Atlanta' },
   { code: 'DFW', name: 'Dallas/Fort Worth International', city: 'Dallas' },
-  { code: 'SEA', name: 'Seattle-Tacoma International', city: 'Seattle' },
   { code: 'BOS', name: 'Boston Logan International', city: 'Boston' },
+  { code: 'SEA', name: 'Seattle-Tacoma International', city: 'Seattle' },
   { code: 'DEN', name: 'Denver International', city: 'Denver' },
-  { code: 'EWR', name: 'Newark Liberty International', city: 'Newark' },
-  { code: 'LGA', name: 'LaGuardia', city: 'New York' },
-  { code: 'IAD', name: 'Washington Dulles International', city: 'Washington DC' },
   // European Hubs
   { code: 'LHR', name: 'Heathrow', city: 'London' },
   { code: 'CDG', name: 'Charles de Gaulle', city: 'Paris' },
-  { code: 'FRA', name: 'Frankfurt Airport', city: 'Frankfurt' },
   { code: 'AMS', name: 'Schiphol', city: 'Amsterdam' },
+  { code: 'FRA', name: 'Frankfurt Airport', city: 'Frankfurt' },
+  // Middle East
+  { code: 'DXB', name: 'Dubai International', city: 'Dubai' },
   // Asian Hubs
-  { code: 'NRT', name: 'Narita International', city: 'Tokyo' },
-  { code: 'HND', name: 'Haneda', city: 'Tokyo' },
   { code: 'SIN', name: 'Changi', city: 'Singapore' },
   { code: 'HKG', name: 'Hong Kong International', city: 'Hong Kong' },
-  { code: 'DXB', name: 'Dubai International', city: 'Dubai' },
+  { code: 'NRT', name: 'Narita International', city: 'Tokyo' },
   // Australian
   { code: 'SYD', name: 'Sydney Kingsford Smith', city: 'Sydney' },
+  // Canadian
+  { code: 'YYZ', name: 'Pearson International', city: 'Toronto' },
+  // Indian Airports
+  { code: 'BOM', name: 'Chhatrapati Shivaji Maharaj International', city: 'Mumbai' },
+  { code: 'DEL', name: 'Indira Gandhi International', city: 'Delhi' },
+  { code: 'BLR', name: 'Kempegowda International', city: 'Bangalore' },
 ];
 
 // Airline logos mapping

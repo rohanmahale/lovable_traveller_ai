@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, MapPin, Users, Wallet, Sparkles } from 'lucide-react';
+import { CalendarIcon, MapPin, Users, Wallet, Sparkles, Plane } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,32 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { TripFormData } from '@/types/travel';
+
+const ORIGIN_AIRPORTS = [
+  { code: "JFK", city: "New York", country: "USA" },
+  { code: "LAX", city: "Los Angeles", country: "USA" },
+  { code: "ORD", city: "Chicago", country: "USA" },
+  { code: "SFO", city: "San Francisco", country: "USA" },
+  { code: "MIA", city: "Miami", country: "USA" },
+  { code: "ATL", city: "Atlanta", country: "USA" },
+  { code: "DFW", city: "Dallas", country: "USA" },
+  { code: "BOS", city: "Boston", country: "USA" },
+  { code: "SEA", city: "Seattle", country: "USA" },
+  { code: "DEN", city: "Denver", country: "USA" },
+  { code: "LHR", city: "London", country: "UK" },
+  { code: "CDG", city: "Paris", country: "France" },
+  { code: "AMS", city: "Amsterdam", country: "Netherlands" },
+  { code: "FRA", city: "Frankfurt", country: "Germany" },
+  { code: "DXB", city: "Dubai", country: "UAE" },
+  { code: "SIN", city: "Singapore", country: "Singapore" },
+  { code: "HKG", city: "Hong Kong", country: "China" },
+  { code: "NRT", city: "Tokyo", country: "Japan" },
+  { code: "SYD", city: "Sydney", country: "Australia" },
+  { code: "YYZ", city: "Toronto", country: "Canada" },
+];
 
 const POPULAR_DESTINATIONS = [
   "Paris, France",
@@ -41,6 +65,7 @@ interface TripPlannerFormProps {
 
 export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
   const [formData, setFormData] = useState<TripFormData>({
+    origin: '',
     destination: '',
     startDate: undefined,
     endDate: undefined,
@@ -75,6 +100,29 @@ export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
       onSubmit={handleSubmit}
       className="space-y-6"
     >
+      {/* Origin Airport */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <Plane className="w-4 h-4 text-primary" />
+          Where are you flying from?
+        </Label>
+        <Select
+          value={formData.origin}
+          onValueChange={(value) => setFormData({ ...formData, origin: value })}
+        >
+          <SelectTrigger className="h-12">
+            <SelectValue placeholder="Select departure airport" />
+          </SelectTrigger>
+          <SelectContent className="max-h-64">
+            {ORIGIN_AIRPORTS.map((airport) => (
+              <SelectItem key={airport.code} value={airport.code}>
+                {airport.code} - {airport.city}, {airport.country}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Destination */}
       <div className="space-y-2 relative">
         <Label htmlFor="destination" className="text-sm font-medium flex items-center gap-2">
@@ -234,7 +282,7 @@ export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
         variant="hero"
         size="xl"
         className="w-full"
-        disabled={isLoading || !formData.destination || !formData.startDate || !formData.endDate}
+        disabled={isLoading || !formData.origin || !formData.destination || !formData.startDate || !formData.endDate}
       >
         {isLoading ? (
           <span className="flex items-center gap-2">

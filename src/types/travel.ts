@@ -94,6 +94,7 @@ export interface Booking {
 }
 
 export interface TripFormData {
+  origin: string;
   destination: string;
   startDate: Date | undefined;
   endDate: Date | undefined;

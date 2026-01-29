@@ -183,7 +183,11 @@ export default function Index() {
               {itinerary && (
                 <div className="space-y-6">
                   <ItineraryDisplay itinerary={itinerary} />
-                  <div className="text-center">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Button variant="outline" size="lg" onClick={() => setActiveTab('plan')}>
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Generate New Itinerary
+                    </Button>
                     <Button variant="hero" size="lg" onClick={() => setActiveTab('flights')}>
                       <Plane className="w-5 h-5 mr-2" />
                       Search Flights

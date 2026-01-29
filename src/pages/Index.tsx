@@ -36,12 +36,15 @@ export default function Index() {
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
   const [activeTab, setActiveTab] = useState('plan');
 
-  const handleGenerateItinerary = async (formData: TripFormData) => {
+  const handleGenerateItinerary = async (formData: TripFormData, isRegenerate = false) => {
     if (!formData.startDate || !formData.endDate) return;
     
     setLastFormData(formData);
     setIsGenerating(true);
-    setItinerary(null);
+    // Only clear itinerary on new generation, not regeneration (to keep showing current while loading)
+    if (!isRegenerate) {
+      setItinerary(null);
+    }
 
     const totalStart = performance.now();
     console.log('[FRONTEND TIMING] Starting itinerary generation...');
@@ -214,7 +217,7 @@ export default function Index() {
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction 
-                            onClick={() => lastFormData && handleGenerateItinerary(lastFormData)}
+                            onClick={() => lastFormData && handleGenerateItinerary(lastFormData, true)}
                           >
                             Generate New
                           </AlertDialogAction>

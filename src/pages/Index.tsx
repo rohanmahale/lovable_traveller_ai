@@ -19,6 +19,7 @@ export default function Index() {
   const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
+  const [tripOrigin, setTripOrigin] = useState<string>('');
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
   const [activeTab, setActiveTab] = useState('plan');
@@ -99,6 +100,7 @@ export default function Index() {
       console.log('[FRONTEND TIMING] Total time:', (performance.now() - totalStart).toFixed(0), 'ms');
 
       setCurrentTrip({ ...trip, itinerary_json: data.itinerary } as Trip);
+      setTripOrigin(formData.origin);
       setItinerary(data.itinerary);
       setActiveTab('itinerary');
 
@@ -194,6 +196,7 @@ export default function Index() {
             <TabsContent value="flights">
               {currentTrip && (
                 <FlightSearch
+                  origin={tripOrigin}
                   destination={currentTrip.destination}
                   departureDate={currentTrip.start_date}
                   returnDate={currentTrip.end_date}

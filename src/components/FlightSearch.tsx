@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, Clock, ArrowRight, Search, Loader2 } from 'lucide-react';
@@ -26,6 +26,7 @@ import {
 } from './FlightFilters';
 
 interface FlightSearchProps {
+  origin: string;
   destination: string;
   departureDate: string;
   returnDate?: string;
@@ -75,14 +76,21 @@ const airlineLogos: Record<string, string> = {
   'QR': 'https://www.gstatic.com/flights/airline_logos/70px/QR.png',
 };
 
-export function FlightSearch({ destination, departureDate, returnDate, onSelectFlight }: FlightSearchProps) {
-  const [origin, setOrigin] = useState('');
+export function FlightSearch({ origin: initialOrigin, destination, departureDate, returnDate, onSelectFlight }: FlightSearchProps) {
+  const [origin, setOrigin] = useState(initialOrigin);
   const [flights, setFlights] = useState<Flight[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [carriers, setCarriers] = useState<Record<string, string>>({});
   const [sortBy, setSortBy] = useState<SortOption>('price-asc');
   const [filters, setFilters] = useState<FlightFilters>(getDefaultFilters([]));
+
+  // Auto-fetch flights when component mounts with valid origin
+  useEffect(() => {
+    if (initialOrigin && destination && departureDate && !hasSearched) {
+      searchFlights();
+    }
+  }, []); // Only run on mount
 
   const searchFlights = async () => {
     if (!origin.trim()) {

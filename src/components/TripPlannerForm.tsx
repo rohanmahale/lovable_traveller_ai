@@ -33,6 +33,9 @@ const ORIGIN_AIRPORTS = [
   { code: "NRT", city: "Tokyo", country: "Japan" },
   { code: "SYD", city: "Sydney", country: "Australia" },
   { code: "YYZ", city: "Toronto", country: "Canada" },
+  { code: "BOM", city: "Mumbai", country: "India" },
+  { code: "DEL", city: "Delhi", country: "India" },
+  { code: "BLR", city: "Bangalore", country: "India" },
 ];
 
 const POPULAR_DESTINATIONS = [

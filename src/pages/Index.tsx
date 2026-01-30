@@ -198,7 +198,17 @@ export default function Index() {
             <TabsContent value="itinerary">
               {itinerary && (
                 <div className="space-y-6">
-                  <ItineraryDisplay itinerary={itinerary} />
+                  <div className="relative">
+                    {isGenerating && (
+                      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-xl">
+                        <div className="flex flex-col items-center gap-3">
+                          <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+                          <p className="text-sm font-medium text-muted-foreground">Generating new itinerary...</p>
+                        </div>
+                      </div>
+                    )}
+                    <ItineraryDisplay itinerary={itinerary} />
+                  </div>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>

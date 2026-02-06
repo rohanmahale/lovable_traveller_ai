@@ -32,7 +32,7 @@ serve(async (req) => {
 Your itineraries are practical, well-researched, and include local hidden gems.
 Always respond with valid JSON matching the exact structure requested.`;
 
-    const userPrompt = `Create a concise ${tripDays}-day travel itinerary for ${destination}. IMPORTANT: Keep the total response under 500 words.
+    const userPrompt = `Create a concise ${tripDays}-day travel itinerary for ${destination}. IMPORTANT: Keep the total response under 300 words.
 
 Trip Details:
 - Dates: ${startDate} to ${endDate}

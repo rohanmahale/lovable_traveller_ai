@@ -27,12 +27,16 @@ serve(async (req) => {
 
     const tripDays = Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1;
     console.log('[INPUT] Trip duration:', tripDays, 'days');
+
+    // Flexible word limit based on trip duration
+    const maxWords = tripDays < 5 ? 300 : tripDays <= 10 ? 500 : 750;
+    console.log('[INPUT] Max words:', maxWords);
     
     const systemPrompt = `You are an expert travel concierge who creates detailed, personalized travel itineraries. 
 Your itineraries are practical, well-researched, and include local hidden gems.
 Always respond with valid JSON matching the exact structure requested.`;
 
-    const userPrompt = `Create a concise ${tripDays}-day travel itinerary for ${destination}. IMPORTANT: Keep the total response under 300 words.
+    const userPrompt = `Create a concise ${tripDays}-day travel itinerary for ${destination}. IMPORTANT: Keep the total response under ${maxWords} words.
 
 Trip Details:
 - Dates: ${startDate} to ${endDate}

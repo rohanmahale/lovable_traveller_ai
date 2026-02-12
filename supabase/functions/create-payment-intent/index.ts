@@ -11,16 +11,30 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, currency, metadata } = await req.json();
+    const body = await req.json();
+
+    // Input validation
+    const amount = Number(body.amount);
+    const currency = typeof body.currency === 'string' ? body.currency.toLowerCase().slice(0, 3) : 'usd';
+    const metadata = body.metadata && typeof body.metadata === 'object' ? body.metadata : {};
+
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 100000) {
+      return new Response(JSON.stringify({ error: 'Invalid amount. Must be between $0.01 and $100,000.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!/^[a-z]{3}$/.test(currency)) {
+      return new Response(JSON.stringify({ error: 'Invalid currency code.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY');
     if (!STRIPE_SECRET_KEY) {
       throw new Error('Stripe API key not configured');
-    }
-
-    // Validate amount
-    if (!amount || amount <= 0) {
-      throw new Error('Invalid amount');
     }
 
     // Amount should be in cents

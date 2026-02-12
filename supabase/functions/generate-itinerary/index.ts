@@ -15,9 +15,43 @@ serve(async (req) => {
     const startTime = Date.now();
     console.log('[TIMING] Request received at:', new Date().toISOString());
 
-    const { destination, startDate, endDate, budget, travelers, interests } = await req.json();
+    const body = await req.json();
     console.log('[TIMING] Body parsed:', Date.now() - startTime, 'ms');
-    console.log('[INPUT] destination:', destination, 'dates:', startDate, '-', endDate, 'travelers:', travelers);
+
+    // Input validation
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const destination = typeof body.destination === 'string' ? body.destination.trim().slice(0, 200) : '';
+    const startDate = typeof body.startDate === 'string' ? body.startDate.trim() : '';
+    const endDate = typeof body.endDate === 'string' ? body.endDate.trim() : '';
+    const budget = Number(body.budget) || 0;
+    const travelers = Number(body.travelers) || 1;
+    const interests = typeof body.interests === 'string' ? body.interests.trim().slice(0, 500) : '';
+
+    if (!destination || destination.length < 2) {
+      return new Response(JSON.stringify({ error: 'Invalid destination.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
+      return new Response(JSON.stringify({ error: 'Invalid date format. Use YYYY-MM-DD.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (budget < 0 || budget > 1000000) {
+      return new Response(JSON.stringify({ error: 'Budget must be between $0 and $1,000,000.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (travelers < 1 || travelers > 50) {
+      return new Response(JSON.stringify({ error: 'Travelers must be between 1 and 50.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('[INPUT] destination:', destination, 'dates:', startDate, '-', endDate);
 
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     if (!OPENAI_API_KEY) {

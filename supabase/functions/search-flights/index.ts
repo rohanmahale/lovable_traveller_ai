@@ -45,9 +45,42 @@ serve(async (req) => {
   }
 
   try {
-    const { origin, destination, departureDate, returnDate, adults, cabinClass } = await req.json();
+    const body = await req.json();
 
-    console.log('Searching flights:', { origin, destination, departureDate, returnDate, adults });
+    // Input validation
+    const iataRegex = /^[A-Z]{3}$/;
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const validCabins = ['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'];
+
+    const origin = typeof body.origin === 'string' ? body.origin.toUpperCase().trim() : '';
+    const destination = typeof body.destination === 'string' ? body.destination.toUpperCase().trim() : '';
+    const departureDate = typeof body.departureDate === 'string' ? body.departureDate.trim() : '';
+    const returnDate = typeof body.returnDate === 'string' ? body.returnDate.trim() : undefined;
+    const adults = Number(body.adults) || 1;
+    const cabinClass = typeof body.cabinClass === 'string' && validCabins.includes(body.cabinClass.toUpperCase()) ? body.cabinClass.toUpperCase() : undefined;
+
+    if (!iataRegex.test(origin) || !iataRegex.test(destination)) {
+      return new Response(JSON.stringify({ error: 'Invalid airport code. Must be 3-letter IATA code.', flights: [] }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!dateRegex.test(departureDate) || (returnDate && !dateRegex.test(returnDate))) {
+      return new Response(JSON.stringify({ error: 'Invalid date format. Use YYYY-MM-DD.', flights: [] }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (adults < 1 || adults > 9) {
+      return new Response(JSON.stringify({ error: 'Adults must be between 1 and 9.', flights: [] }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Searching flights:', { origin, destination, departureDate });
 
     // Get Amadeus access token
     const accessToken = await getAmadeusToken();

@@ -32,10 +32,13 @@ double_confirm_changes = true
 enable_confirmations = false
 
 [functions.generate-itinerary]
-verify_jwt = true
+verify_jwt = false
 
 [functions.search-flights]
-verify_jwt = true
+verify_jwt = false
 
 [functions.create-payment-intent]
-verify_jwt = true
+verify_jwt = false
+
+[functions.complete-booking]
+verify_jwt = false

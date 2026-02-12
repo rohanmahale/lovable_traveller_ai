@@ -152,22 +152,16 @@ function CheckoutForm({ flight, tripId, paymentIntentId, onSuccess, onBack }: Ch
           variant: "destructive",
         });
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Create booking record
-        const { data: booking, error: bookingError } = await supabase
-          .from('bookings')
-          .insert({
-            trip_id: tripId,
-            provider_name: flight.outbound.carrier,
-            amount_cents: Math.round(flight.price.total * 100),
-            currency: flight.price.currency.toLowerCase(),
-            flight_data_json: JSON.parse(JSON.stringify(flight)),
-            payment_status: 'completed',
-            stripe_payment_intent_id: paymentIntentId,
-          })
-          .select()
-          .single();
+        // Create booking via server-side verification
+        const { data, error: bookingError } = await supabase.functions.invoke('complete-booking', {
+          body: {
+            paymentIntentId,
+            tripId,
+            flightData: flight,
+          },
+        });
 
-        if (bookingError) {
+        if (bookingError || !data?.booking) {
           console.error('Error creating booking:', bookingError);
           toast({
             title: "Booking Error",
@@ -177,7 +171,7 @@ function CheckoutForm({ flight, tripId, paymentIntentId, onSuccess, onBack }: Ch
         } else {
           setIsComplete(true);
           setTimeout(() => {
-            onSuccess(booking.id);
+            onSuccess(data.booking.id);
           }, 2000);
         }
       }

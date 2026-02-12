@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { Plane, Sparkles, RefreshCw } from 'lucide-react';
@@ -28,6 +29,13 @@ import { TripFormData, Itinerary, Flight, Trip } from '@/types/travel';
 
 export default function Index() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
   const [tripOrigin, setTripOrigin] = useState<string>('');
@@ -51,7 +59,7 @@ export default function Index() {
 
     try {
       // Create trip record first
-      const guestUserId = '00000000-0000-0000-0000-000000000000';
+      const userId = user!.id;
       
       const dbInsertStart = performance.now();
       console.log('[FRONTEND TIMING] Creating trip record...');
@@ -59,7 +67,7 @@ export default function Index() {
       const { data: trip, error: tripError } = await supabase
         .from('trips')
         .insert([{
-          user_id: guestUserId,
+          user_id: userId,
           destination: formData.destination,
           start_date: format(formData.startDate, 'yyyy-MM-dd'),
           end_date: format(formData.endDate, 'yyyy-MM-dd'),

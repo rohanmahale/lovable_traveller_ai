@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import { Plane, Sparkles, RefreshCw } from 'lucide-react';
+import { Plane, Sparkles, RefreshCw, Mic } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { TripPlannerForm } from '@/components/TripPlannerForm';
+import { VoiceAgent } from '@/components/VoiceAgent';
 import { LoadingAnimation } from '@/components/LoadingAnimation';
 import { ItineraryDisplay } from '@/components/ItineraryDisplay';
 import { FlightSearch } from '@/components/FlightSearch';
@@ -43,6 +44,7 @@ export default function Index() {
   const [lastFormData, setLastFormData] = useState<TripFormData | null>(null);
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
   const [activeTab, setActiveTab] = useState('plan');
+  const [showVoiceAgent, setShowVoiceAgent] = useState(false);
 
   const handleGenerateItinerary = async (formData: TripFormData, isRegenerate = false) => {
     if (!formData.startDate || !formData.endDate) return;
@@ -198,8 +200,33 @@ export default function Index() {
             <TabsContent value="plan" className="space-y-6">
               {isGenerating ? (
                 <LoadingAnimation />
+              ) : showVoiceAgent ? (
+                <VoiceAgent
+                  onTripDetailsSubmitted={(formData) => {
+                    setShowVoiceAgent(false);
+                    handleGenerateItinerary(formData);
+                  }}
+                  onClose={() => setShowVoiceAgent(false)}
+                />
               ) : (
-                <TripPlannerForm onSubmit={handleGenerateItinerary} isLoading={isGenerating} />
+                <div className="space-y-6">
+                  <TripPlannerForm onSubmit={handleGenerateItinerary} isLoading={isGenerating} />
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border" />
+                    </div>
+                    <span className="relative bg-background px-4 text-sm text-muted-foreground">or</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full gap-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5"
+                    onClick={() => setShowVoiceAgent(true)}
+                  >
+                    <Mic className="w-5 h-5 text-primary" />
+                    Plan with Voice Agent
+                  </Button>
+                </div>
               )}
             </TabsContent>
 

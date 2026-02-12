@@ -34,11 +34,36 @@ export function VoiceAgent({ onTripDetailsSubmitted, onClose }: VoiceAgentProps)
         travelers?: string;
         interests?: string;
       }) => {
+        // Parse dates robustly - the voice agent may pass various formats
+        const parseDate = (dateStr: string): Date | undefined => {
+          if (!dateStr) return undefined;
+          // Try direct parsing first
+          let d = new Date(dateStr);
+          if (!isNaN(d.getTime())) return d;
+          // Try adding current year if not present
+          d = new Date(`${dateStr} ${new Date().getFullYear()}`);
+          if (!isNaN(d.getTime())) return d;
+          console.warn('Could not parse date:', dateStr);
+          return undefined;
+        };
+
+        const startDate = parseDate(params.startDate);
+        const endDate = parseDate(params.endDate);
+
+        if (!startDate || !endDate) {
+          toast({
+            title: 'Invalid Dates',
+            description: 'Could not understand the travel dates. Please try again.',
+            variant: 'destructive',
+          });
+          return 'I could not parse the dates. Please provide dates in a clear format like "June 15, 2026".';
+        }
+
         const formData: TripFormData = {
           origin: params.origin,
           destination: params.destination,
-          startDate: new Date(params.startDate),
-          endDate: new Date(params.endDate),
+          startDate,
+          endDate,
           budget: params.budget || '2000',
           travelers: params.travelers || '1',
           interests: params.interests || '',

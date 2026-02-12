@@ -49,6 +49,22 @@ export default function Index() {
   const handleGenerateItinerary = async (formData: TripFormData, isRegenerate = false) => {
     if (!formData.startDate || !formData.endDate) return;
     
+    // Ensure dates are valid Date objects (voice agent may pass strings)
+    const startDate = formData.startDate instanceof Date ? formData.startDate : new Date(formData.startDate);
+    const endDate = formData.endDate instanceof Date ? formData.endDate : new Date(formData.endDate);
+    
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      toast({
+        title: 'Invalid Dates',
+        description: 'Could not process the travel dates. Please try again.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Use the validated dates
+    formData = { ...formData, startDate, endDate };
+    
     setLastFormData(formData);
     setIsGenerating(true);
     // Only clear itinerary on new generation, not regeneration (to keep showing current while loading)

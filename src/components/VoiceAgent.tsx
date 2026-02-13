@@ -34,40 +34,12 @@ export function VoiceAgent({ onTripDetailsSubmitted, onClose }: VoiceAgentProps)
         travelers?: string;
         interests?: string;
       }) => {
-        // Parse dates robustly - the voice agent may pass various formats
-        const parseDate = (dateStr: string): Date | undefined => {
-          if (!dateStr) return undefined;
-          // Strip ordinal suffixes (1st, 2nd, 3rd, 4th, etc.)
-          const cleaned = dateStr.replace(/(\d+)(st|nd|rd|th)/gi, '$1').trim();
-          // Try direct parsing
-          let d = new Date(cleaned);
-          if (!isNaN(d.getTime())) return d;
-          // Try adding current year if year is missing
-          d = new Date(`${cleaned}, ${new Date().getFullYear()}`);
-          if (!isNaN(d.getTime())) return d;
-          d = new Date(`${cleaned} ${new Date().getFullYear()}`);
-          if (!isNaN(d.getTime())) return d;
-          console.warn('Could not parse date:', dateStr, '-> cleaned:', cleaned);
-          return undefined;
-        };
-
-        const startDate = parseDate(params.startDate);
-        const endDate = parseDate(params.endDate);
-
-        if (!startDate || !endDate) {
-          toast({
-            title: 'Invalid Dates',
-            description: 'Could not understand the travel dates. Please try again.',
-            variant: 'destructive',
-          });
-          return 'I could not parse the dates. Please provide dates in a clear format like "June 15, 2026".';
-        }
-
+        // Pass raw date strings — handleGenerateItinerary will parse them
         const formData: TripFormData = {
           origin: params.origin,
           destination: params.destination,
-          startDate,
-          endDate,
+          startDate: params.startDate as any,
+          endDate: params.endDate as any,
           budget: params.budget || '2000',
           travelers: params.travelers || '1',
           interests: params.interests || '',

@@ -49,11 +49,29 @@ export default function Index() {
   const handleGenerateItinerary = async (formData: TripFormData, isRegenerate = false) => {
     if (!formData.startDate || !formData.endDate) return;
     
-    // Ensure dates are valid Date objects (voice agent may pass strings)
-    const startDate = formData.startDate instanceof Date ? formData.startDate : new Date(formData.startDate);
-    const endDate = formData.endDate instanceof Date ? formData.endDate : new Date(formData.endDate);
+    // Robust date parsing helper for strings from voice agent
+    const parseDate = (val: any): Date | null => {
+      if (val instanceof Date && !isNaN(val.getTime())) return val;
+      if (typeof val !== 'string') return null;
+      // Strip ordinal suffixes (1st, 2nd, 3rd, 4th, etc.)
+      const cleaned = val.replace(/(\d+)(st|nd|rd|th)/gi, '$1').trim();
+      // Try multiple parse strategies
+      for (const attempt of [
+        cleaned,
+        `${cleaned}, ${new Date().getFullYear()}`,
+        `${cleaned} ${new Date().getFullYear()}`,
+      ]) {
+        const d = new Date(attempt);
+        if (!isNaN(d.getTime())) return d;
+      }
+      console.warn('Could not parse date:', val, '-> cleaned:', cleaned);
+      return null;
+    };
+
+    const startDate = parseDate(formData.startDate);
+    const endDate = parseDate(formData.endDate);
     
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    if (!startDate || !endDate) {
       toast({
         title: 'Invalid Dates',
         description: 'Could not process the travel dates. Please try again.',

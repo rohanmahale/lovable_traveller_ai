@@ -67,6 +67,87 @@ const originAirports: { code: string; name: string; city: string }[] = [
   { code: 'BLR', name: 'Kempegowda International', city: 'Bangalore' },
 ];
 
+// Map common destination names to IATA codes
+const destinationToIata: Record<string, string> = {
+  'new york': 'JFK', 'nyc': 'JFK', 'manhattan': 'JFK',
+  'los angeles': 'LAX', 'la': 'LAX',
+  'chicago': 'ORD',
+  'san francisco': 'SFO',
+  'miami': 'MIA',
+  'atlanta': 'ATL',
+  'dallas': 'DFW',
+  'boston': 'BOS',
+  'seattle': 'SEA',
+  'denver': 'DEN',
+  'london': 'LHR',
+  'paris': 'CDG',
+  'amsterdam': 'AMS',
+  'frankfurt': 'FRA',
+  'dubai': 'DXB',
+  'singapore': 'SIN',
+  'hong kong': 'HKG',
+  'tokyo': 'NRT', 'japan': 'NRT',
+  'sydney': 'SYD',
+  'toronto': 'YYZ',
+  'mumbai': 'BOM', 'bombay': 'BOM',
+  'delhi': 'DEL', 'new delhi': 'DEL',
+  'bangalore': 'BLR', 'bengaluru': 'BLR',
+  'rome': 'FCO', 'roma': 'FCO',
+  'madrid': 'MAD',
+  'barcelona': 'BCN',
+  'lisbon': 'LIS',
+  'istanbul': 'IST',
+  'bangkok': 'BKK', 'thailand': 'BKK',
+  'bali': 'DPS', 'denpasar': 'DPS',
+  'cairo': 'CAI',
+  'johannesburg': 'JNB',
+  'mexico city': 'MEX',
+  'sao paulo': 'GRU', 'são paulo': 'GRU',
+  'buenos aires': 'EZE',
+  'lima': 'LIM',
+  'bogota': 'BOG', 'bogotá': 'BOG',
+  'seoul': 'ICN', 'south korea': 'ICN',
+  'beijing': 'PEK',
+  'shanghai': 'PVG',
+  'kuala lumpur': 'KUL',
+  'melbourne': 'MEL',
+  'auckland': 'AKL',
+  'vancouver': 'YVR',
+  'zurich': 'ZRH',
+  'vienna': 'VIE',
+  'prague': 'PRG',
+  'dublin': 'DUB',
+  'copenhagen': 'CPH',
+  'oslo': 'OSL',
+  'stockholm': 'ARN',
+  'helsinki': 'HEL',
+  'athens': 'ATH',
+  'hawaii': 'HNL', 'honolulu': 'HNL',
+  'las vegas': 'LAS',
+  'orlando': 'MCO',
+  'washington': 'IAD', 'washington dc': 'IAD',
+  'cancun': 'CUN', 'cancún': 'CUN',
+};
+
+function resolveDestinationIata(destination: string): string {
+  // If already a 3-letter IATA code, return it
+  const trimmed = destination.trim().toUpperCase();
+  if (/^[A-Z]{3}$/.test(trimmed)) return trimmed;
+
+  // Try to match by city name
+  const lower = destination.trim().toLowerCase();
+  if (destinationToIata[lower]) return destinationToIata[lower];
+
+  // Try partial match (e.g., "Paris, France" -> match "paris")
+  for (const [key, code] of Object.entries(destinationToIata)) {
+    if (lower.includes(key) || key.includes(lower)) return code;
+  }
+
+  // Fallback: take first 3 chars (unlikely to work but better than nothing)
+  console.warn('[FlightSearch] Could not resolve IATA code for destination:', destination);
+  return trimmed.substring(0, 3);
+}
+
 // Airline logos mapping
 const airlineLogos: Record<string, string> = {
   'AA': 'https://www.gstatic.com/flights/airline_logos/70px/AA.png',
@@ -112,7 +193,7 @@ export function FlightSearch({ origin: initialOrigin, destination, departureDate
       const { data, error } = await supabase.functions.invoke('search-flights', {
         body: {
           origin: origin.toUpperCase(),
-          destination: destination.substring(0, 3).toUpperCase(), // Extract IATA code
+          destination: resolveDestinationIata(destination),
           departureDate,
           returnDate,
           adults: 1,

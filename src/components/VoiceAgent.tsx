@@ -25,32 +25,42 @@ export function VoiceAgent({ onTripDetailsSubmitted, onClose }: VoiceAgentProps)
 
   const conversation = useConversation({
     clientTools: {
-      submit_trip_details: (params: {
-        origin: string;
-        destination: string;
-        startDate: string;
-        endDate: string;
-        budget?: string;
-        travelers?: string;
-        interests?: string;
-      }) => {
+      submit_trip_details: (params: Record<string, any>) => {
         console.log('[VOICE AGENT] submit_trip_details called with params:', JSON.stringify(params, null, 2));
         console.log('[VOICE AGENT] Raw startDate:', params.startDate, '| Raw endDate:', params.endDate);
+        console.log('[VOICE AGENT] Raw origin:', params.origin, '| Raw destination:', params.destination);
 
-        // Pass raw date strings — handleGenerateItinerary will parse them
+        // Validate required fields before proceeding
+        if (!params.origin || !params.destination || !params.startDate || !params.endDate) {
+          console.error('[VOICE AGENT] Missing required fields:', {
+            origin: params.origin,
+            destination: params.destination,
+            startDate: params.startDate,
+            endDate: params.endDate,
+          });
+          toast({
+            title: 'Incomplete Trip Details',
+            description: 'The voice agent did not provide all required details (origin, destination, dates). Please try again.',
+            variant: 'destructive',
+          });
+          return 'Missing required trip details. Please ask the user again for their origin, destination, start date, and end date.';
+        }
+
         const formData: TripFormData = {
-          origin: params.origin,
-          destination: params.destination,
-          startDate: params.startDate as any,
-          endDate: params.endDate as any,
-          budget: params.budget || '2000',
-          travelers: params.travelers || '1',
-          interests: params.interests || '',
+          origin: String(params.origin),
+          destination: String(params.destination),
+          startDate: String(params.startDate) as any,
+          endDate: String(params.endDate) as any,
+          budget: params.budget ? String(params.budget) : '2000',
+          travelers: params.travelers ? String(params.travelers) : '1',
+          interests: params.interests ? String(params.interests) : '',
         };
+
+        console.log('[VOICE AGENT] Constructed formData:', JSON.stringify(formData, null, 2));
 
         toast({
           title: 'Trip Details Collected!',
-          description: `Planning your trip to ${params.destination}...`,
+          description: `Planning your trip to ${formData.destination}...`,
         });
 
         onTripDetailsSubmitted(formData);

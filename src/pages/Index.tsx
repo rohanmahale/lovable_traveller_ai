@@ -48,7 +48,8 @@ export default function Index() {
 
   const handleGenerateItinerary = async (formData: TripFormData, isRegenerate = false) => {
     if (!formData.startDate || !formData.endDate) return;
-    
+
+    console.log('[ITINERARY] handleGenerateItinerary called with dates:', { startDate: formData.startDate, endDate: formData.endDate, type_start: typeof formData.startDate, type_end: typeof formData.endDate });
     // Robust date parsing helper for strings from voice agent
     const parseDate = (val: any): Date | null => {
       if (val instanceof Date && !isNaN(val.getTime())) return val;

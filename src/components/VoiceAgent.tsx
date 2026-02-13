@@ -34,6 +34,9 @@ export function VoiceAgent({ onTripDetailsSubmitted, onClose }: VoiceAgentProps)
         travelers?: string;
         interests?: string;
       }) => {
+        console.log('[VOICE AGENT] submit_trip_details called with params:', JSON.stringify(params, null, 2));
+        console.log('[VOICE AGENT] Raw startDate:', params.startDate, '| Raw endDate:', params.endDate);
+
         // Pass raw date strings — handleGenerateItinerary will parse them
         const formData: TripFormData = {
           origin: params.origin,

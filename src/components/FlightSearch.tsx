@@ -192,7 +192,7 @@ export function FlightSearch({ origin: initialOrigin, destination, departureDate
     try {
       const { data, error } = await supabase.functions.invoke('search-flights', {
         body: {
-          origin: origin.toUpperCase(),
+          origin: resolveDestinationIata(origin),
           destination: resolveDestinationIata(destination),
           departureDate,
           returnDate,

@@ -37,13 +37,17 @@ export function VoiceAgent({ onTripDetailsSubmitted, onClose }: VoiceAgentProps)
         // Parse dates robustly - the voice agent may pass various formats
         const parseDate = (dateStr: string): Date | undefined => {
           if (!dateStr) return undefined;
-          // Try direct parsing first
-          let d = new Date(dateStr);
+          // Strip ordinal suffixes (1st, 2nd, 3rd, 4th, etc.)
+          const cleaned = dateStr.replace(/(\d+)(st|nd|rd|th)/gi, '$1').trim();
+          // Try direct parsing
+          let d = new Date(cleaned);
           if (!isNaN(d.getTime())) return d;
-          // Try adding current year if not present
-          d = new Date(`${dateStr} ${new Date().getFullYear()}`);
+          // Try adding current year if year is missing
+          d = new Date(`${cleaned}, ${new Date().getFullYear()}`);
           if (!isNaN(d.getTime())) return d;
-          console.warn('Could not parse date:', dateStr);
+          d = new Date(`${cleaned} ${new Date().getFullYear()}`);
+          if (!isNaN(d.getTime())) return d;
+          console.warn('Could not parse date:', dateStr, '-> cleaned:', cleaned);
           return undefined;
         };
 

@@ -87,6 +87,7 @@ export function TripPlannerForm({ onSubmit, isLoading }: TripPlannerFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[MANUAL FORM] Submitting with dates:', { startDate: formData.startDate, endDate: formData.endDate, type_start: typeof formData.startDate, type_end: typeof formData.endDate, startDate_toString: formData.startDate?.toString(), endDate_toString: formData.endDate?.toString() });
     onSubmit(formData);
   };
 

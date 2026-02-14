@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import {
   Plane, ArrowLeft, Calendar, Users, DollarSign, MapPin,
-  Clock, Shield, Loader2, AlertCircle, CheckCircle2
+  Clock, Shield, Loader2, AlertCircle, CheckCircle2, Navigation
 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { ItineraryDisplay } from '@/components/ItineraryDisplay';
@@ -52,7 +52,17 @@ export default function TripDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [visaLoading, setVisaLoading] = useState(false);
   const [visaError, setVisaError] = useState<string | null>(null);
-  const [originCountry, setOriginCountry] = useState<string>('');
+
+  // Map IATA codes to country names for visa lookup
+  const ORIGIN_COUNTRY_MAP: Record<string, string> = {
+    JFK: 'United States', LAX: 'United States', ORD: 'United States',
+    SFO: 'United States', MIA: 'United States', ATL: 'United States',
+    DFW: 'United States', BOS: 'United States', SEA: 'United States',
+    DEN: 'United States', LHR: 'United Kingdom', CDG: 'France',
+    AMS: 'Netherlands', FRA: 'Germany', DXB: 'United Arab Emirates',
+    SIN: 'Singapore', HKG: 'China', NRT: 'Japan', SYD: 'Australia',
+    YYZ: 'Canada', BOM: 'India', DEL: 'India', BLR: 'India',
+  };
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -82,26 +92,34 @@ export default function TripDetails() {
     fetchData();
   }, [user, id, navigate]);
 
-  // Fetch visa info when origin country is provided
-  const fetchVisaInfo = async (origin: string) => {
-    if (!trip || !origin.trim()) return;
-    setVisaLoading(true);
-    setVisaError(null);
+  // Auto-fetch visa info when trip is loaded and has origin
+  useEffect(() => {
+    if (!trip || visaInfo || visaLoading) return;
 
-    try {
-      const { data, error } = await supabase.functions.invoke('get-visa-requirements', {
-        body: { originCountry: origin, destinationCountry: trip.destination },
-      });
+    const originCode = trip.origin;
+    if (!originCode) return;
 
-      if (error) throw error;
-      setVisaInfo(data.visaInfo);
-    } catch (err: any) {
-      console.error('Visa info error:', err);
-      setVisaError('Could not fetch visa requirements. Please try again.');
-    } finally {
-      setVisaLoading(false);
-    }
-  };
+    const originCountry = ORIGIN_COUNTRY_MAP[originCode] || originCode;
+    
+    const fetchVisaInfo = async () => {
+      setVisaLoading(true);
+      setVisaError(null);
+      try {
+        const { data, error } = await supabase.functions.invoke('get-visa-requirements', {
+          body: { originCountry, destinationCountry: trip.destination },
+        });
+        if (error) throw error;
+        setVisaInfo(data.visaInfo);
+      } catch (err: any) {
+        console.error('Visa info error:', err);
+        setVisaError('Could not fetch visa requirements. Please try again.');
+      } finally {
+        setVisaLoading(false);
+      }
+    };
+
+    fetchVisaInfo();
+  }, [trip]);
 
   if (authLoading || isLoading || !user) {
     return (
@@ -277,25 +295,19 @@ export default function TripDetails() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Origin input */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="text"
-                      placeholder="Enter your country of origin (e.g. United States, India)"
-                      value={originCountry}
-                      onChange={(e) => setOriginCountry(e.target.value)}
-                      className="flex-1 h-12 rounded-xl border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <Button
-                      variant="hero"
-                      className="h-12"
-                      onClick={() => fetchVisaInfo(originCountry)}
-                      disabled={visaLoading || !originCountry.trim()}
-                    >
-                      {visaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Shield className="w-4 h-4 mr-2" />}
-                      Check Visa
-                    </Button>
-                  </div>
+                  {!trip.origin && (
+                    <div className="flex items-center gap-2 p-4 bg-muted rounded-xl text-muted-foreground text-sm">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      No origin was set for this trip. Visa requirements cannot be determined.
+                    </div>
+                  )}
+
+                  {visaLoading && (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
+                      <span className="text-muted-foreground">Fetching visa requirements...</span>
+                    </div>
+                  )}
 
                   {visaError && (
                     <div className="flex items-center gap-2 p-4 bg-destructive/10 rounded-xl text-destructive text-sm">
@@ -310,6 +322,12 @@ export default function TripDetails() {
                       animate={{ opacity: 1, y: 0 }}
                       className="space-y-4"
                     >
+                      {/* Origin badge */}
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Navigation className="w-4 h-4" />
+                        <span>Origin: <strong className="text-foreground">{ORIGIN_COUNTRY_MAP[trip.origin || ''] || trip.origin}</strong></span>
+                      </div>
+
                       {/* Summary */}
                       <div className={`p-4 rounded-xl flex items-center gap-3 ${visaInfo.visaRequired ? 'bg-yellow-50 text-yellow-800' : 'bg-green-50 text-green-800'}`}>
                         {visaInfo.visaRequired ? (
@@ -367,12 +385,6 @@ export default function TripDetails() {
                         </div>
                       )}
                     </motion.div>
-                  )}
-
-                  {!visaInfo && !visaLoading && !visaError && (
-                    <p className="text-center text-muted-foreground py-6">
-                      Enter your country of origin above to check visa requirements.
-                    </p>
                   )}
                 </CardContent>
               </Card>

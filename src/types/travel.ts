@@ -2,6 +2,7 @@ export interface Trip {
   id: string;
   user_id: string;
   destination: string;
+  origin: string | null;
   start_date: string;
   end_date: string;
   budget: number | null;

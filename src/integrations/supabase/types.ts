@@ -96,6 +96,7 @@ export type Database = {
           end_date: string
           id: string
           itinerary_json: Json | null
+          origin: string | null
           start_date: string
           status: string | null
           travelers: number | null
@@ -109,6 +110,7 @@ export type Database = {
           end_date: string
           id?: string
           itinerary_json?: Json | null
+          origin?: string | null
           start_date: string
           status?: string | null
           travelers?: number | null
@@ -122,6 +124,7 @@ export type Database = {
           end_date?: string
           id?: string
           itinerary_json?: Json | null
+          origin?: string | null
           start_date?: string
           status?: string | null
           travelers?: number | null

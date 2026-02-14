@@ -106,6 +106,7 @@ export default function Index() {
         .insert([{
           user_id: userId,
           destination: formData.destination,
+          origin: formData.origin || null,
           start_date: format(formData.startDate, 'yyyy-MM-dd'),
           end_date: format(formData.endDate, 'yyyy-MM-dd'),
           budget: parseInt(formData.budget) || null,

@@ -106,7 +106,10 @@ export default function Trips() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="border-none shadow-card hover:shadow-card-hover transition-all group cursor-pointer">
+                  <Card 
+                    className="border-none shadow-card hover:shadow-card-hover transition-all group cursor-pointer"
+                    onClick={() => navigate(`/trips/${trip.id}`)}
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">

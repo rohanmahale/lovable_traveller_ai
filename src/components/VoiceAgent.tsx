@@ -105,8 +105,25 @@ export function VoiceAgent({ onTripDetailsSubmitted, onClose }: VoiceAgentProps)
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
     try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // CRITICAL: getUserMedia must be called directly in click handler
+      await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+    } catch (micError) {
+      console.error('Microphone access error:', micError);
+      setIsConnecting(false);
+      toast({
+        title: 'Microphone Access Required',
+        description: 'Please enable microphone access to use voice planning.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
+    try {
       const { data, error } = await supabase.functions.invoke('elevenlabs-conversation-token');
 
       if (error || !data?.token) {
@@ -120,8 +137,8 @@ export function VoiceAgent({ onTripDetailsSubmitted, onClose }: VoiceAgentProps)
     } catch (error) {
       console.error('Failed to start conversation:', error);
       toast({
-        title: 'Microphone Access Required',
-        description: 'Please enable microphone access to use voice planning.',
+        title: 'Connection Error',
+        description: 'Failed to connect to voice agent. Please try again.',
         variant: 'destructive',
       });
     } finally {

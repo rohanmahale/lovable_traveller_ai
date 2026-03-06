@@ -74,16 +74,20 @@ export function VoiceAgent({ onTripDetailsSubmitted, onClose }: VoiceAgentProps)
       console.log('Disconnected from ElevenLabs agent');
     },
     onMessage: (message: any) => {
-      if (message.type === 'user_transcript') {
-        const userText = message.user_transcription_event?.user_transcript;
-        if (userText) {
-          setTranscript(prev => [...prev, { role: 'user', text: userText }]);
+      try {
+        if (message?.type === 'user_transcript') {
+          const userText = message.user_transcription_event?.user_transcript;
+          if (userText) {
+            setTranscript(prev => [...prev, { role: 'user', text: userText }]);
+          }
+        } else if (message?.type === 'agent_response') {
+          const agentText = message.agent_response_event?.agent_response;
+          if (agentText) {
+            setTranscript(prev => [...prev, { role: 'agent', text: agentText }]);
+          }
         }
-      } else if (message.type === 'agent_response') {
-        const agentText = message.agent_response_event?.agent_response;
-        if (agentText) {
-          setTranscript(prev => [...prev, { role: 'agent', text: agentText }]);
-        }
+      } catch (e) {
+        console.warn('Message handling error:', e);
       }
     },
     onError: (error) => {

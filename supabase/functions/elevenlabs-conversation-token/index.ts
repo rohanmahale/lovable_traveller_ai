@@ -61,9 +61,9 @@ serve(async (req) => {
       throw new Error(`ElevenLabs API error: ${response.status}`);
     }
 
-    const { token } = await response.json();
+    const { token: conversationToken } = await response.json();
 
-    return new Response(JSON.stringify({ token }), {
+    return new Response(JSON.stringify({ token: conversationToken }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {

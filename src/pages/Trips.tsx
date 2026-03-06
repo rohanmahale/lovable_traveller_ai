@@ -108,7 +108,10 @@ export default function Trips() {
                 >
                   <Card 
                     className="border-none shadow-card hover:shadow-card-hover transition-all group cursor-pointer"
-                    onClick={() => navigate(`/trips/${trip.id}`)}
+                    onClick={() => {
+                      console.log('Trip card clicked, navigating to:', `/trips/${trip.id}`);
+                      navigate(`/trips/${trip.id}`);
+                    }}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">

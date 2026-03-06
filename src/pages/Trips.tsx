@@ -106,43 +106,39 @@ export default function Trips() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card 
-                    className="border-none shadow-card hover:shadow-card-hover transition-all group cursor-pointer"
-                    onClick={() => {
-                      console.log('Trip card clicked, navigating to:', `/trips/${trip.id}`);
-                      navigate(`/trips/${trip.id}`);
-                    }}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-semibold">{trip.destination}</h3>
-                            <Badge className={statusColors[trip.status] || statusColors.draft}>
-                              {trip.status}
-                            </Badge>
-                          </div>
-                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {format(new Date(trip.start_date), 'MMM d')} - {format(new Date(trip.end_date), 'MMM d, yyyy')}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Users className="w-4 h-4" />
-                              {trip.travelers} traveler{trip.travelers > 1 ? 's' : ''}
-                            </span>
-                            {trip.budget && (
+                  <Link to={`/trips/${trip.id}`} className="block">
+                    <Card className="border-none shadow-card hover:shadow-card-hover transition-all group cursor-pointer">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-xl font-semibold">{trip.destination}</h3>
+                              <Badge className={statusColors[trip.status] || statusColors.draft}>
+                                {trip.status}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
-                                <DollarSign className="w-4 h-4" />
-                                ${trip.budget}
+                                <Calendar className="w-4 h-4" />
+                                {format(new Date(trip.start_date), 'MMM d')} - {format(new Date(trip.end_date), 'MMM d, yyyy')}
                               </span>
-                            )}
+                              <span className="flex items-center gap-1">
+                                <Users className="w-4 h-4" />
+                                {trip.travelers} traveler{trip.travelers > 1 ? 's' : ''}
+                              </span>
+                              {trip.budget && (
+                                <span className="flex items-center gap-1">
+                                  <DollarSign className="w-4 h-4" />
+                                  ${trip.budget}
+                                </span>
+                              )}
+                            </div>
                           </div>
+                          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
                         </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 </motion.div>
               ))}
             </div>
